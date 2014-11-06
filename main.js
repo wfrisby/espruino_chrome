@@ -66,8 +66,8 @@ SerialConnection.prototype.getDevices = function(callback) {
   serial.getDevices(callback)
 };
 
-SerialConnection.prototype.connect = function(path) {
-  serial.connect(path, this.onConnectComplete.bind(this))
+SerialConnection.prototype.connect = function(path, baudrate) {
+  serial.connect(path, {bitrate: baudrate}, this.onConnectComplete.bind(this))
 };
 
 SerialConnection.prototype.send = function(msg) {
@@ -81,7 +81,7 @@ SerialConnection.prototype.disconnect = function() {
   if (this.connectionId < 0) {
     throw 'Invalid connection';
   }
-  
+
 };
 
 ////////////////////////////////////////////////////////
@@ -102,15 +102,15 @@ connection.onConnect.addListener(function() {
   document.querySelector('#connect_box').style.display = 'none';
   document.querySelector('#control_box').style.display = 'block';
   // Simply send text to Espruino
-  connection.send('"Hello "+"Espruino"\n');
+  //connection.send('"Hello "+"Espruino"\n');
 });
 
 connection.onReadLine.addListener(function(line) {
   log('read line: ' + line);
   // if the line 'TEMPERATURE=' foo is returned, set the
   // set the button's text
-  if (line.indexOf("TEMPERATURE=")==0)
-    document.querySelector('#get_temperature').innerHTML = "Temp = "+line.substr(12);
+  //if (line.indexOf("TEMPERATURE=")==0)
+  //  document.querySelector('#get_temperature').innerHTML = "Temp = "+line.substr(12);
 });
 
 // Populate the list of available devices
@@ -123,7 +123,7 @@ connection.getDevices(function(ports) {
   ports.forEach(function (port) {
     var displayName = port["displayName"] + "("+port.path+")";
     if (!displayName) displayName = port.path;
-    
+
     var newOption = document.createElement("option");
     newOption.text = displayName;
     newOption.value = port.path;
@@ -136,9 +136,13 @@ document.querySelector('#connect_button').addEventListener('click', function() {
   // get the device to connect to
   var dropDown = document.querySelector('#port_list');
   var devicePath = dropDown.options[dropDown.selectedIndex].value;
+
+  var baudrateDown = document.querySelector('#baud_rate_list');
+  var baudrate = baudrateDown.options[baudrateDown.selectedIndex].value;
+
   // connect
-  log("Connecting to "+devicePath);
-  connection.connect(devicePath);
+  log("Connecting to "+devicePath+" at speed "+baudrate);
+  connection.connect(devicePath,baudrate);
 });
 
 ////////////////////////////////////////////////////////
